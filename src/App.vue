@@ -29,13 +29,13 @@
             </a>
           </li>
           <li>
-            <a href="#" class="nav-link" @click.prevent="didNewArrPress">
+            <a href="#" class="nav-link" @click.prevent="updateArr">
               <fa-icon :icon="['fas', 'align-right']" /> Generate new array of size ({{ arrSize }}):
             </a>
           </li>
           <!-- array size slider -->
           <li>
-            <input type="range" class="custom-range" id="arrySizeSlider" min="40" max="200" step="1" v-model="arrSize" @change="updateArr">
+            <input type="range" class="custom-range" id="arrySizeSlider" min="40" max="200" step="1" v-model="arrSize">
           </li>
         </ul>
         <!-- right side nav -->
@@ -71,8 +71,14 @@ export default {
       algo: "",
       arrSize: '120',
       windowHeight: window.innerHeight,
+      arr: [...Array(120)].map(() => [Math.ceil(Math.random() * 99), 'lightblue']),
       // the backdoor will change upon 'generate new arr' button is pressed, causing the computed prop 'arr' to re-compute
       updateArrBackdoor: 0
+    }
+  },
+  watch: {
+    arrSize: function (val) {
+      this.arr = [...Array(parseInt(val))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
     }
   },
   computed: {
@@ -91,12 +97,7 @@ export default {
         case "quick":
           return "Quick Sort";
       }
-    },
-    arr: function () {
-      // noinspection JSUnusedLocalSymbols
-      const _ = this.updateArrBackdoor;
-      return [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
-    },
+    }
   },
   methods: {
     didSortPress: function () {
@@ -109,11 +110,8 @@ export default {
           break;
       }
     },
-    didNewArrPress: function () {
-      this.updateArrBackdoor++;
-    },
     updateArr: function () {
-      this.arr = [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue'])
+      this.arr = [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
     },
     getStripStyle: function(index) {
       const i = index - 1;
