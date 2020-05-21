@@ -15,21 +15,21 @@
               <fa-icon :icon="['fas', 'random']" /> {{ algoText }}
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a href="#" class="dropdown-item" @click.prevent="algo = 'bubble'">Bubble Sort</a>
-              <a href="#" class="dropdown-item" @click.prevent="algo = 'merge'">Merge Sort</a>
-              <a href="#" class="dropdown-item" @click.prevent="algo = 'insertion'">Insertion Sort</a>
-              <a href="#" class="dropdown-item" @click.prevent="algo = 'selection'">Selection Sort</a>
+              <a href="#" class="dropdown-item" @click="algo = 'bubble'">Bubble Sort</a>
+              <a href="#" class="dropdown-item" @click="algo = 'merge'">Merge Sort</a>
+              <a href="#" class="dropdown-item" @click="algo = 'insertion'">Insertion Sort</a>
+              <a href="#" class="dropdown-item" @click="algo = 'selection'">Selection Sort</a>
               <div class="dropdown-divider"></div>
-              <a href="#" class="dropdown-item" @click.prevent="algo = 'quick'">Quick Sort</a>
+              <a href="#" class="dropdown-item" @click="algo = 'quick'">Quick Sort</a>
             </div>
           </li>
           <li>
-            <a href="#" class="nav-link" @click.prevent="didSortPress">
+            <a href="#" class="nav-link" @click="didSortPress">
               <fa-icon :icon="['fas', 'filter']" /> Sort!
             </a>
           </li>
           <li>
-            <a href="#" class="nav-link" @click.prevent="updateArr">
+            <a href="#" class="nav-link" @click="updateArr">
               <fa-icon :icon="['fas', 'align-right']" /> Generate new array of size ({{ arrSize }}):
             </a>
           </li>
@@ -71,9 +71,7 @@ export default {
       algo: "",
       arrSize: '120',
       windowHeight: window.innerHeight,
-      arr: [...Array(120)].map(() => [Math.ceil(Math.random() * 99), 'lightblue']),
-      // the backdoor will change upon 'generate new arr' button is pressed, causing the computed prop 'arr' to re-compute
-      updateArrBackdoor: 0
+      arr: [...Array(120)].map(() => [Math.ceil(Math.random() * 99), 'lightblue'])
     }
   },
   watch: {
@@ -100,20 +98,49 @@ export default {
     }
   },
   methods: {
-    didSortPress: function () {
+    async didSortPress() {
       switch (this.algo) {
         case "":
           alert("Please choose an algorithm first.");
           break;
         case "bubble":
-          this.arr[0][1] = 'red';
+          console.log("bubble sorting");
+          let swap;
+          let n = this.arr.length - 1;
+          do {
+            swap = false;
+            for (let i=0; i < n; i++) {
+              this.arr[i][1] = 'lightcoral';
+              this.arr[i+1][1] = 'lightcoral';
+              if (this.arr[i][0] > this.arr[i+1][0]) {
+                const temp = this.arr[i][0];
+
+                this.arr[i][0] = this.arr[i+1][0];
+                await sleep(10);
+                this.$forceUpdate();
+
+                this.arr[i+1][0] = temp;
+                await sleep(10);
+                this.$forceUpdate();
+                swap = true;
+              }
+              this.arr[i][1] = 'lightblue';
+              this.arr[i+1][1] = 'lightblue';
+            }
+            this.arr[n][1] = 'lightgreen';
+            n--;
+          } while (swap);
+          // color the rest green
+          for (let i=0; i <= n; i++) {
+            this.arr[i][1] = 'lightgreen';
+          }
           break;
       }
     },
-    updateArr: function () {
+    updateArr() {
       this.arr = [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
     },
-    getStripStyle: function(index) {
+    getStripStyle(index) {
       const i = index - 1;
       const sWidth = 100 / parseInt(this.arrSize);
       return {
@@ -124,7 +151,7 @@ export default {
         backgroundColor: this.arr[i][1]
       }
     },
-    onResize: function () {
+    onResize() {
       this.windowHeight = window.innerHeight;
     }
   },
@@ -133,6 +160,11 @@ export default {
       window.addEventListener('resize', this.onResize);
     });
   }
+}
+
+//--- helper functions
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 </script>
 
