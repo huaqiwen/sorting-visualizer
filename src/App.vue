@@ -29,13 +29,13 @@
             </a>
           </li>
           <li>
-            <a href="#" class="nav-link" @click.prevent="">
+            <a href="#" class="nav-link" @click.prevent="didNewArrPress">
               <fa-icon :icon="['fas', 'align-right']" /> Generate new array of size ({{ arrSize }}):
             </a>
           </li>
           <!-- array size slider -->
           <li>
-            <input type="range" class="custom-range" id="arrySizeSlider" min="40" max="120" step="1" v-model="arrSize" @change="updateArr">
+            <input type="range" class="custom-range" id="arrySizeSlider" min="40" max="200" step="1" v-model="arrSize" @change="updateArr">
           </li>
         </ul>
         <!-- right side nav -->
@@ -51,14 +51,9 @@
     </nav>
 
     <div class="container">
-      <div class="strip" style="height: 180px"></div>
-      <div class="strip" style="height: 120px"></div>
-      <div class="strip" style="height: 130px"></div>
-      <div class="strip" style="height: 100px"></div>
-      <div class="strip" style="height: 60px"></div>
-      <div class="strip" style="height: 80px"></div>
-      <div class="strip" style="height: 180px"></div>
-      <div class="strip" style="height: 200px"></div>
+      <div style="align-self: center">
+        <div class="strip" v-for="i in parseInt(arrSize)" :style="getStripStyle(i)"></div>
+      </div>
     </div>
 
   </div>
@@ -74,8 +69,10 @@ export default {
   data: function () {
     return {
       algo: "",
-      arrSize: 80,
+      arrSize: '120',
       windowHeight: window.innerHeight,
+      // the backdoor will change upon 'generate new arr' button is pressed, causing the computed prop 'arr' to re-compute
+      updateArrBackdoor: 0
     }
   },
   computed: {
@@ -94,7 +91,12 @@ export default {
         case "quick":
           return "Quick Sort";
       }
-    }
+    },
+    arr: function () {
+      // noinspection JSUnusedLocalSymbols
+      const _ = this.updateArrBackdoor;
+      return [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
+    },
   },
   methods: {
     didSortPress: function () {
@@ -102,10 +104,27 @@ export default {
         case "":
           alert("Please choose an algorithm first.");
           break;
+        case "bubble":
+          this.arr[0][1] = 'red';
+          break;
       }
     },
+    didNewArrPress: function () {
+      this.updateArrBackdoor++;
+    },
     updateArr: function () {
-
+      this.arr = [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue'])
+    },
+    getStripStyle: function(index) {
+      const i = index - 1;
+      const sWidth = 100 / parseInt(this.arrSize);
+      return {
+        width: sWidth * 0.6 + '%',
+        marginLeft: sWidth * 0.2 + '%',
+        marginRight: sWidth * 0.2 + '%',
+        height: this.windowHeight * 0.6 * (this.arr[i][0] / 100) + 'px',
+        backgroundColor: this.arr[i][1]
+      }
     },
     onResize: function () {
       this.windowHeight = window.innerHeight;
@@ -127,8 +146,6 @@ export default {
 
   .strip {
     display: inline-block;
-    background-color: aqua;
-    width: 0.5%;
     vertical-align: top;
   }
 </style>
