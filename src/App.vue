@@ -16,15 +16,15 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
               <a href="#" class="dropdown-item" @click="algo = 'bubble'">Bubble Sort</a>
-              <a href="#" class="dropdown-item" @click="algo = 'merge'">Merge Sort</a>
               <a href="#" class="dropdown-item" @click="algo = 'insertion'">Insertion Sort</a>
               <a href="#" class="dropdown-item" @click="algo = 'selection'">Selection Sort</a>
               <div class="dropdown-divider"></div>
+              <a href="#" class="dropdown-item" @click="algo = 'merge'">Merge Sort</a>
               <a href="#" class="dropdown-item" @click="algo = 'quick'">Quick Sort</a>
             </div>
           </li>
           <li>
-            <a href="#" class="nav-link" @click="didSortPress">
+            <a href="#" :class="sortBtnStateClass" @click="didSortPress">
               <fa-icon :icon="['fas', 'filter']" /> Sort!
             </a>
           </li>
@@ -70,13 +70,16 @@ export default {
     return {
       algo: "",
       arrSize: '120',
+      sortingSpeed: 20,
       windowHeight: window.innerHeight,
-      arr: [...Array(120)].map(() => [Math.ceil(Math.random() * 99), 'lightblue'])
+      arr: [...Array(120)].map(() => [Math.ceil(Math.random() * 99), 'lightblue']),
+      isInSortingProcess: false
     }
   },
   watch: {
     arrSize: function (val) {
       this.arr = [...Array(parseInt(val))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
+      this.isInSortingProcess = false;
     }
   },
   computed: {
@@ -86,15 +89,18 @@ export default {
           return "Select an Algorithm";
         case "bubble":
           return "Bubble Sort";
-        case "merge":
-          return "Merge Sort";
         case "selection":
           return "Selection Sort";
         case "insertion":
           return "Insertion Sort";
+        case "merge":
+          return "Merge Sort";
         case "quick":
           return "Quick Sort";
       }
+    },
+    sortBtnStateClass: function () {
+      return (this.isInSortingProcess) ? 'nav-link disabled' : 'nav-link';
     }
   },
   methods: {
@@ -103,24 +109,31 @@ export default {
         case "":
           alert("Please choose an algorithm first.");
           break;
+
         case "bubble":
-          console.log("bubble sorting");
+          // get in sorting process
+          this.isInSortingProcess = true;
+
           let swap;
           let n = this.arr.length - 1;
+
           do {
             swap = false;
             for (let i=0; i < n; i++) {
+              // if not in sorting process, terminate
+              if (!this.isInSortingProcess) { return; }
+
               this.arr[i][1] = 'lightcoral';
               this.arr[i+1][1] = 'lightcoral';
               if (this.arr[i][0] > this.arr[i+1][0]) {
                 const temp = this.arr[i][0];
 
                 this.arr[i][0] = this.arr[i+1][0];
-                await sleep(10);
+                await sleep(this.sortingSpeed);
                 this.$forceUpdate();
 
                 this.arr[i+1][0] = temp;
-                await sleep(10);
+                await sleep(this.sortingSpeed);
                 this.$forceUpdate();
                 swap = true;
               }
@@ -130,15 +143,56 @@ export default {
             this.arr[n][1] = 'lightgreen';
             n--;
           } while (swap);
-          // color the rest green
+
+          // color the rest green, end sorting process
           for (let i=0; i <= n; i++) {
             this.arr[i][1] = 'lightgreen';
           }
+          this.isInSortingProcess = false;
+          break;
+
+        case "insertion":
+          // get in sorting process
+          this.isInSortingProcess = true;
+
+          for (let i=1; i < this.arr.length; i++) {
+            let j = i - 1;
+            this.arr[i][1] = 'lightcoral';
+
+            let temp = this.arr[i][0];
+            while (j >= 0 && this.arr[j][0] > temp) {
+              // if not in sorting process, terminate and re-color
+              if (!this.isInSortingProcess) {
+                for (let i=0; i < this.arr.length; i++) {
+                  this.arr[i][1] = 'lightblue';
+                }
+                return;
+              }
+
+              this.arr[j][1] = 'gold';
+              this.arr[j+1][0] = this.arr[j][0];
+              await sleep(this.sortingSpeed);
+              this.$forceUpdate();
+              this.arr[j][1] = 'lightgreen';
+              j--;
+            }
+            this.arr[j+1][0] = temp;
+
+            // show strip in position
+            this.arr[i][1] = 'lightgreen';
+            for (let i=0; i <= j+1; i++) {
+              this.arr[i][1] = 'lightgreen';
+            }
+          }
+          // color last strip green, end sorting process
+          this.arr[this.arr.length - 1][1] = 'lightgreen';
+          this.isInSortingProcess = false;
           break;
       }
     },
     updateArr() {
       this.arr = [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
+      this.isInSortingProcess = false;
     },
     getStripStyle(index) {
       const i = index - 1;
