@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import './icons';
 
 // for bootstrap
 import BootstrapVue from "bootstrap-vue";
@@ -10,13 +11,5 @@ Vue.use(BootstrapVue);
 
 new Vue({
   el: '#app',
-  render: h => h(App),
-  data: {
-    algo: ""
-  },
-  methods: {
-    greet: function(event) {
-      alert("hi");
-    }
-  }
+  render: h => h(App)
 })
