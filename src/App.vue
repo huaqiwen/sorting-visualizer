@@ -70,16 +70,18 @@ export default {
     return {
       algo: "",
       arrSize: '120',
-      sortingSpeed: 20,
+      sleepDuration: 20,
       windowHeight: window.innerHeight,
       arr: [...Array(120)].map(() => [Math.ceil(Math.random() * 99), 'lightblue']),
-      isInSortingProcess: false
+      isInSortingProcess: false,
+      sorted: false
     }
   },
   watch: {
     arrSize: function (val) {
       this.arr = [...Array(parseInt(val))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
       this.isInSortingProcess = false;
+      this.sorted = false;
     }
   },
   computed: {
@@ -105,6 +107,14 @@ export default {
   },
   methods: {
     async didSortPress() {
+      // already sorted
+      if (this.sorted) {
+        alert("The array is already sorted!");
+        return;
+      }
+
+      let n;
+
       switch (this.algo) {
         case "":
           alert("Please choose an algorithm first.");
@@ -115,7 +125,7 @@ export default {
           this.isInSortingProcess = true;
 
           let swap;
-          let n = this.arr.length - 1;
+          n = this.arr.length - 1;
 
           do {
             swap = false;
@@ -129,11 +139,11 @@ export default {
                 const temp = this.arr[i][0];
 
                 this.arr[i][0] = this.arr[i+1][0];
-                await sleep(this.sortingSpeed);
+                await sleep(this.sleepDuration);
                 this.$forceUpdate();
 
                 this.arr[i+1][0] = temp;
-                await sleep(this.sortingSpeed);
+                await sleep(this.sleepDuration);
                 this.$forceUpdate();
                 swap = true;
               }
@@ -149,6 +159,7 @@ export default {
             this.arr[i][1] = 'lightgreen';
           }
           this.isInSortingProcess = false;
+          this.sorted = true;
           break;
 
         case "insertion":
@@ -171,7 +182,7 @@ export default {
 
               this.arr[j][1] = 'gold';
               this.arr[j+1][0] = this.arr[j][0];
-              await sleep(this.sortingSpeed);
+              await sleep(this.sleepDuration);
               this.$forceUpdate();
               this.arr[j][1] = 'lightgreen';
               j--;
@@ -187,12 +198,128 @@ export default {
           // color last strip green, end sorting process
           this.arr[this.arr.length - 1][1] = 'lightgreen';
           this.isInSortingProcess = false;
+          this.sorted = true;
+          break;
+
+        case "selection":
+          // get in sorting process
+          this.isInSortingProcess = true;
+
+          const len = this.arr.length;
+          for (let i=0; i < len; i++) {
+            let min = i;
+            this.arr[min][1] = 'gold';
+
+            for (let j=i+1; j < len; j++) {
+              // if not in sorting process, terminate and re-color
+              if (!this.isInSortingProcess) {
+                this.colorArr('lightblue');
+                return;
+              }
+
+              this.arr[j][1] = 'lightcoral';
+              await sleep(this.sleepDuration);
+
+              if (this.arr[min][0] > this.arr[j][0]) {
+                this.arr[min][1] = 'lightblue';
+                min = j;
+                this.arr[min][1] = 'gold';
+                this.$forceUpdate();
+              } else {
+                this.arr[j][1] = 'lightblue';
+                this.$forceUpdate();
+              }
+            }
+            if (min !== i) {
+              const temp = this.arr[i][0];
+              this.arr[i][0] = this.arr[min][0];
+              this.arr[min][0] = temp;
+              this.arr[min][1] = 'lightblue';
+              this.$forceUpdate();
+            }
+            this.arr[i][1] = 'lightgreen';
+          }
+
+          // finish the sorting process
+          this.isInSortingProcess = false;
+          this.sorted = true;
+          break;
+
+        case "merge":
+          // get in sorting process
+          this.isInSortingProcess = true;
+
+          const merge = async (a, b, start, mid, end) => {
+            let i = start,
+              j = mid;
+            for (let k=start; k < end; k++) {
+              // if not in sorting process, terminate and re-color
+              if (!this.isInSortingProcess) {
+                this.colorArr('lightblue');
+                return;
+              }
+              a[i][1] = 'lightcoral';
+              if (j < a.length) { a[j][1] = 'lightcoral'; }
+              this.$forceUpdate();
+              await sleep(10);
+              a[i][1] = 'lightblue';
+              if (j < a.length) { a[j][1] = 'lightblue'; }
+              this.$forceUpdate();
+
+              if (i < mid && (j >= end || a[i][0] <= a[j][0])) {
+                b[k] = a[i];
+                i++;
+              } else {
+                b[k] = a[j];
+                j++;
+              }
+            }
+          }
+
+          n = this.arr.length;
+          let brr = this.arr.slice();
+          let width = 1;
+
+          while (width < n) {
+            let start = 0;
+            while (start < n) {
+              const mid = Math.min(n, start + width);
+              const end = Math.min(n, start + (2 * width));
+              await merge(this.arr, brr, start, mid, end);
+              start += 2 * width;
+            }
+            for (let i=0; i < this.arr.length; i++) {
+              // if not in sorting process, terminate and re-color
+              if (!this.isInSortingProcess) {
+                this.colorArr('lightblue');
+                return;
+              }
+              this.arr[i][1] = 'blueviolet';
+              this.$forceUpdate();
+              await sleep(this.sleepDuration);
+              this.arr[i][1] = 'lightblue';
+              this.$forceUpdate();
+
+              this.arr[i] = brr[i];
+            }
+            width *= 2;
+          }
+
+          // finish the sorting process
+          this.isInSortingProcess = false;
+          this.colorArr('lightgreen');
           break;
       }
     },
     updateArr() {
       this.arr = [...Array(parseInt(this.arrSize))].map(() => [Math.ceil(Math.random() * 99), 'lightblue']);
       this.isInSortingProcess = false;
+      this.sorted = false;
+    },
+    colorArr(color) {
+      for (let i=0; i < this.arr.length; i++) {
+        this.arr[i][1] = color;
+      }
     },
     getStripStyle(index) {
       const i = index - 1;
