@@ -307,6 +307,7 @@ export default {
 
           // finish the sorting process
           this.isInSortingProcess = false;
+          this.sorted = true;
           this.colorArr('lightgreen');
           break;
       }
