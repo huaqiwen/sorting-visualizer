@@ -310,6 +310,67 @@ export default {
           this.sorted = true;
           this.colorArr('lightgreen');
           break;
+
+        case "quick":
+          // get in sorting process
+          this.isInSortingProcess = true;
+
+          const that = this;
+
+          async function quickSort(arr, start, end) {
+            if (start >= end) {
+              if (typeof arr[start] !== 'undefined') {
+                arr[start][1] = 'lightgreen';
+              }
+              return;
+            }
+
+            let index = await partition(arr, start, end);
+
+            arr[index][1] = 'lightgreen';
+            that.$forceUpdate();
+
+            await quickSort(arr, start, index - 1);
+            await quickSort(arr, index + 1, end);
+          }
+
+          async function partition(arr, start, end) {
+            let pivotIndex = start;
+            let pivotVal = arr[end][0];
+
+            arr[pivotIndex][1] = 'blueviolet';
+            that.$forceUpdate();
+            await sleep(that.sleepDuration);
+            arr[pivotIndex][1] = 'lightblue';
+
+            for (let i=start; i < end; i++) {
+
+              arr[i][1] = 'lightcoral';
+              that.$forceUpdate();
+              await sleep(that.sleepDuration);
+              arr[i][1] = 'lightblue';
+
+              if (arr[i][0] < pivotVal) {
+                swapArr(arr, i, pivotIndex);
+                pivotIndex++;
+
+                arr[pivotIndex][1] = 'blueviolet';
+                that.$forceUpdate();
+                await sleep(that.sleepDuration);
+                arr[pivotIndex][1] = 'lightblue';
+              }
+            }
+            swapArr(arr, pivotIndex, end);
+            return pivotIndex;
+          }
+
+          await quickSort(this.arr, 0, this.arr.length - 1);
+
+          // finish the sorting process
+          this.isInSortingProcess = false;
+          this.sorted = true;
+          this.colorArr('lightgreen');
+          break;
       }
     },
     updateArr() {
@@ -347,6 +408,12 @@ export default {
 //--- helper functions
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function swapArr(arr, a, b) {
+  const temp = arr[a];
+  arr[a] = arr[b];
+  arr[b] = temp;
 }
 </script>
 
